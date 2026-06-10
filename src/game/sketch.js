@@ -10,7 +10,8 @@ import { regionViewport } from './levels';
 // onViewportRef({ setTarget, getViewport }) — camera control API for React.
 
 export function createSketch({ level, allLevels = [], completedIds = new Set(),
-                               initialVp, onConnect, onWin, onViewportRef }) {
+                               initialVp, onConnect, onWin, onViewportRef,
+                               interactive = true }) {
   return function sketch(p) {
     const HIT_RADIUS = 30;
     const STAR_R     = 5.5;
@@ -45,7 +46,7 @@ export function createSketch({ level, allLevels = [], completedIds = new Set(),
 
     // ── State ────────────────────────────────────────────────────────────────
     let bgStars = [], decoyStars = [], drawnEdges = new Set(), wrongFlashes = [];
-    let dragStart = null, mouseOnStar = null, inputEnabled = true;
+    let dragStart = null, mouseOnStar = null, inputEnabled = interactive;
 
     const correctEdgeSet = new Set(level.connections.map(([a, b]) => ekey(a, b)));
     function ekey(a, b) { return `${Math.min(a,b)}-${Math.max(a,b)}`; }
@@ -136,9 +137,9 @@ export function createSketch({ level, allLevels = [], completedIds = new Set(),
         const col        = p.color(lvl.starColor);
         const r = p.red(col), g = p.green(col), b = p.blue(col);
 
-        // Lines — completed constellations show full connections
+        // Lines — use canonical connections for completed levels; live drawnEdges only for active in-progress level
         if (isDone) {
-          const edges = isCurrent
+          const edges = (isCurrent && !completedIds.has(lvl.id))
             ? [...drawnEdges].map(k => k.split('-').map(Number))
             : lvl.connections;
           p.strokeWeight(1.2);

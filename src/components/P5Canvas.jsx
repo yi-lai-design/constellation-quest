@@ -3,7 +3,7 @@ import p5 from 'p5';
 import { createSketch } from '../game/sketch';
 
 export default function P5Canvas({ level, allLevels, completedIds, initialVp,
-                                    onConnect, onWin, cameraRef }) {
+                                    onConnect, onWin, cameraRef, interactive = true }) {
   const containerRef = useRef(null);
   const p5Ref = useRef(null);
 
@@ -15,6 +15,7 @@ export default function P5Canvas({ level, allLevels, completedIds, initialVp,
       initialVp,
       onConnect,
       onWin,
+      interactive,
       onViewportRef: (api) => { if (cameraRef) cameraRef.current = api; },
     });
     p5Ref.current = new p5(sketchFn, containerRef.current);

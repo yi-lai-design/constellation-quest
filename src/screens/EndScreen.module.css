@@ -11,6 +11,8 @@
 }
 
 .content {
+  position: relative;
+  z-index: 10;
   text-align: center;
   display: flex;
   flex-direction: column;

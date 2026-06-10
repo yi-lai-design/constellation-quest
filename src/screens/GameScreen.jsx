@@ -1,11 +1,10 @@
 import { useState, useCallback, useRef } from 'react';
 import P5Canvas from '../components/P5Canvas';
-import { LEVELS, SKY_VIEWPORT, regionViewport } from '../game/levels';
+import { LEVELS } from '../game/levels';
 import styles from './GameScreen.module.css';
 
-// phase flow:
-//  'playing' → win → 'zooming-out' → (1.4s) → 'map-view'
-//  'map-view' → tap next → 'zooming-in' → (1.5s) → 'playing'
+// phase: 'playing' → win → 'level-complete' (1.2s flash) → 'playing' (next level)
+//        last level win → onComplete()
 
 export default function GameScreen({ onComplete }) {
   const [levelIndex,   setLevelIndex]   = useState(0);
@@ -13,29 +12,36 @@ export default function GameScreen({ onComplete }) {
   const [connections,  setConnections]  = useState(0);
   const [phase,        setPhase]        = useState('playing');
   const [completedIds, setCompletedIds] = useState(new Set());
-  const [initialVp,    setInitialVp]    = useState(null);
   const [showHint,     setShowHint]     = useState(true);
 
-  const cameraRef = useRef(null);
+  const cameraRef   = useRef(null);
+  const levelIdxRef = useRef(0);
+  levelIdxRef.current = levelIndex;
 
-  const level        = LEVELS[levelIndex];
-  const isLastLevel  = levelIndex === LEVELS.length - 1;
-  const totalConns   = level.connections.length;
-  const isPlaying    = phase === 'playing';
-  const isMapView    = phase === 'map-view';
+  const level      = LEVELS[levelIndex];
+  const isPlaying  = phase === 'playing';
+  const totalConns = level.connections.length;
 
-  // ── Callbacks ─────────────────────────────────────────────────────────────
   const handleConnect = useCallback(() => {
     setConnections(c => c + 1);
     setShowHint(false);
   }, []);
 
   const handleWin = useCallback(() => {
-    setPhase('zooming-out');
-    cameraRef.current?.setTarget(SKY_VIEWPORT);
     cameraRef.current?.disableInput();
-    setTimeout(() => setPhase('map-view'), 1400);
-  }, []);
+    const idx = levelIdxRef.current;
+    const isLast = idx === LEVELS.length - 1;
+    setPhase('level-complete');
+
+    setTimeout(() => {
+      setCompletedIds(prev => new Set(prev).add(LEVELS[idx].id));
+      if (isLast) { onComplete(); return; }
+      setLevelIndex(idx + 1);
+      setConnections(0);
+      setShowHint(true);
+      setPhase('playing');
+    }, 1200);
+  }, [onComplete]);
 
   function restart() {
     setResetCount(c => c + 1);
@@ -44,22 +50,6 @@ export default function GameScreen({ onComplete }) {
     setShowHint(true);
   }
 
-  function handleNext() {
-    const newCompleted = new Set(completedIds).add(levelIndex);
-    setCompletedIds(newCompleted);
-
-    if (isLastLevel) { onComplete(); return; }
-
-    // Mount next level's sketch starting at full sky, zoom it in
-    setInitialVp({ ...SKY_VIEWPORT });
-    setLevelIndex(i => i + 1);
-    setConnections(0);
-    setShowHint(true);
-    setPhase('zooming-in');
-    setTimeout(() => setPhase('playing'), 1600);
-  }
-
-  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className={styles.root}>
       <P5Canvas
@@ -67,15 +57,15 @@ export default function GameScreen({ onComplete }) {
         level={level}
         allLevels={LEVELS}
         completedIds={completedIds}
-        initialVp={initialVp}
+        initialVp={null}
         onConnect={handleConnect}
         onWin={handleWin}
         cameraRef={cameraRef}
       />
 
-      {/* HUD — hide during map view */}
-      {(isPlaying || phase === 'zooming-in') && (
-        <div className={`${styles.hud} ${phase === 'zooming-in' ? styles.hudFading : ''}`}>
+      {/* HUD */}
+      {isPlaying && (
+        <div className={styles.hud}>
           <div className={styles.levelTag}>
             <span className={styles.levelLabel}>LEVEL {level.id} / {LEVELS.length}</span>
             <span className={styles.levelName} style={{ color: level.starColor }}>{level.name}</span>
@@ -91,7 +81,7 @@ export default function GameScreen({ onComplete }) {
         </div>
       )}
 
-      {/* Bottom bar — only while playing */}
+      {/* Bottom bar */}
       {isPlaying && (
         <div className={styles.bottomBar}>
           {showHint && <p className={styles.hint}>{level.hint}</p>}
@@ -99,29 +89,11 @@ export default function GameScreen({ onComplete }) {
         </div>
       )}
 
-      {/* Zooming-in label */}
-      {phase === 'zooming-in' && (
-        <div className={styles.zoomInLabel}>
-          <p className={styles.zoomInName} style={{ color: level.starColor }}>{level.name}</p>
-          <p className={styles.zoomInSub}>zooming in…</p>
-        </div>
-      )}
-
-      {/* Map-view overlay — after zoom out */}
-      {isMapView && (
-        <div className={styles.mapOverlay}>
-          <div className={styles.mapCard}>
-            <p className={styles.mapEyebrow}>CONSTELLATION MAPPED</p>
-            <h2 className={styles.mapTitle} style={{ color: level.starColor }}>{level.name}</h2>
-            <p className={styles.mapSub}>{level.stars.length} stars · {totalConns} connections</p>
-            <button
-              className={styles.nextBtn}
-              style={{ borderColor: level.starColor, color: level.starColor }}
-              onClick={handleNext}
-            >
-              {isLastLevel ? 'VIEW FULL SKY →' : 'NEXT CONSTELLATION →'}
-            </button>
-          </div>
+      {/* Level-complete flash */}
+      {phase === 'level-complete' && (
+        <div className={styles.levelComplete}>
+          <p className={styles.lcName} style={{ color: level.starColor }}>{level.name}</p>
+          <p className={styles.lcLabel}>MAPPED</p>
         </div>
       )}
     </div>

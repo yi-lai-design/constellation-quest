@@ -12,9 +12,7 @@
   padding: 20px 26px;
   z-index: 30;
   pointer-events: none;
-  transition: opacity 0.6s ease;
 }
-.hudFading { opacity: 0.3; }
 
 .levelTag { display: flex; flex-direction: column; gap: 3px; }
 
@@ -63,7 +61,6 @@
   pointer-events: none;
 }
 
-/* Pill restart button */
 .resetBtn {
   font-family: 'Cinzel', serif;
   font-size: 9px;
@@ -83,8 +80,8 @@
   background: rgba(50, 70, 180, 0.2);
 }
 
-/* ── Zoom-in label ── */
-.zoomInLabel {
+/* ── Level-complete flash ── */
+.levelComplete {
   position: fixed;
   inset: 0;
   display: flex;
@@ -93,103 +90,29 @@
   justify-content: center;
   z-index: 30;
   pointer-events: none;
-  animation: fadeInOut 1.6s ease forwards;
+  animation: flashInOut 1.2s ease forwards;
 }
-@keyframes fadeInOut {
+@keyframes flashInOut {
   0%   { opacity: 0; }
-  25%  { opacity: 1; }
-  70%  { opacity: 1; }
+  18%  { opacity: 1; }
+  72%  { opacity: 1; }
   100% { opacity: 0; }
 }
-.zoomInName {
+
+.lcName {
   font-family: 'Cormorant Garamond', serif;
   font-style: italic;
-  font-size: clamp(42px, 9vw, 72px);
   font-weight: 300;
-  margin: 0;
+  font-size: clamp(48px, 10vw, 78px);
+  margin: 0 0 10px;
   line-height: 1;
   letter-spacing: -0.5px;
 }
-.zoomInSub {
-  font-family: 'Cinzel', serif;
-  font-size: 8px;
-  letter-spacing: 4px;
-  color: rgba(180, 195, 255, 0.28);
-  margin: 12px 0 0;
-}
 
-/* ── Map-view overlay (card anchored to bottom) ── */
-.mapOverlay {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding-bottom: 48px;
-  z-index: 40;
-  animation: slideUp 0.55s cubic-bezier(0.16, 1, 0.3, 1);
-}
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(24px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-.mapCard {
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: rgba(6, 6, 20, 0.88);
-  border: 1px solid rgba(100, 130, 255, 0.12);
-  border-radius: 20px;
-  padding: 28px 36px 26px;
-  backdrop-filter: blur(20px);
-  max-width: 340px;
-  width: 90%;
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6), 0 0 40px rgba(60, 80, 200, 0.08);
-}
-
-.mapEyebrow {
+.lcLabel {
   font-family: 'Cinzel', serif;
   font-size: 8px;
   letter-spacing: 5px;
-  color: rgba(140, 160, 255, 0.38);
-  margin: 0 0 10px;
-}
-
-.mapTitle {
-  font-family: 'Cormorant Garamond', serif;
-  font-weight: 300;
-  font-style: italic;
-  font-size: clamp(38px, 8vw, 56px);
-  margin: 0 0 6px;
-  line-height: 1.05;
-  letter-spacing: -0.3px;
-}
-
-.mapSub {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 13px;
-  color: rgba(180, 195, 255, 0.28);
-  margin: 0 0 26px;
-  letter-spacing: 0.5px;
-}
-
-/* Pill next button */
-.nextBtn {
-  font-family: 'Cinzel', serif;
-  font-size: 9px;
-  letter-spacing: 3px;
-  background: rgba(40, 55, 160, 0.2);
-  border: 1px solid;
-  padding: 13px 32px;
-  border-radius: 100px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-  backdrop-filter: blur(8px);
-}
-.nextBtn:hover, .nextBtn:active {
-  opacity: 0.7;
-  box-shadow: 0 0 24px rgba(80, 110, 255, 0.2);
+  color: rgba(180, 195, 255, 0.35);
+  margin: 0;
 }
