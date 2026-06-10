@@ -1,0 +1,70 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Cormorant+Garamond:ital,wght@0,300;1,300;1,400&display=swap');
+
+.root {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.content {
+  text-align: center;
+  pointer-events: all;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.eyebrow {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 6px;
+  color: rgba(180, 200, 255, 0.5);
+  margin: 0 0 12px;
+}
+
+.title {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 300;
+  font-size: clamp(52px, 10vw, 88px);
+  color: rgba(255, 255, 255, 0.92);
+  line-height: 1.05;
+  margin: 0 0 20px;
+}
+
+.title em {
+  font-style: italic;
+  color: rgba(160, 190, 255, 0.85);
+}
+
+.sub {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.38);
+  line-height: 1.6;
+  margin: 0 0 44px;
+}
+
+.btn {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: rgba(160, 190, 255, 0.7);
+  background: transparent;
+  border: 1px solid rgba(160, 190, 255, 0.25);
+  padding: 13px 40px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btnHover {
+  color: rgba(180, 210, 255, 1);
+  border-color: rgba(160, 190, 255, 0.6);
+  background: rgba(160, 190, 255, 0.06);
+}

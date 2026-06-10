@@ -1,0 +1,145 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Cormorant+Garamond:ital,wght@0,300;1,300;1,400&display=swap');
+
+.root {
+  position: fixed;
+  inset: 0;
+}
+
+/* ── HUD ── */
+.hud {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 28px;
+  z-index: 30;
+  pointer-events: none;
+}
+
+.levelTag {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.levelLabel {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 4px;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.levelName {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  font-weight: 300;
+  font-style: italic;
+}
+
+.progress {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.pip {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* ── Hint ── */
+.hint {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  pointer-events: none;
+  text-align: center;
+}
+
+.hint p {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.28);
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+/* ── Win overlay ── */
+.winOverlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(4, 4, 15, 0.75);
+  backdrop-filter: blur(12px);
+  z-index: 40;
+  animation: fadeIn 0.6s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.winCard {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  animation: riseIn 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.winEyebrow {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 5px;
+  color: rgba(255, 255, 255, 0.35);
+  margin: 0 0 12px;
+}
+
+.winTitle {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 300;
+  font-style: italic;
+  font-size: clamp(48px, 9vw, 80px);
+  margin: 0 0 8px;
+  line-height: 1;
+}
+
+.winSub {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.3);
+  margin: 0 0 36px;
+}
+
+.winBtn {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 3px;
+  background: transparent;
+  border: 1px solid;
+  padding: 13px 32px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.winBtn:hover {
+  opacity: 0.7;
+}
