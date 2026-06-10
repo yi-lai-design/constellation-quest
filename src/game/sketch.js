@@ -83,19 +83,20 @@ export function createSketch({ level, allLevels = [], completedIds = new Set(),
 
     // ── Draw helpers (atmosphere, stars) ─────────────────────────────────────
     function drawAtmosphere() {
-      // Very faint radial gradient — lighter in centre, tracks constellation region
+      // Concentric ellipses simulate a radial glow — p5 primitives only (iOS-safe)
       const { x: cx, y: cy } = worldToScreen(
         level.region.x + level.region.w / 2,
         level.region.y + level.region.h / 2
       );
-      const radius = Math.max(p.width, p.height) * 0.65;
-      const grad = p.drawingContext.createRadialGradient(cx, cy, 0, cx, cy, radius);
-      grad.addColorStop(0,   'rgba(40,50,120,0.18)');
-      grad.addColorStop(0.4, 'rgba(20,25,70,0.08)');
-      grad.addColorStop(1,   'rgba(0,0,0,0)');
-      p.drawingContext.fillStyle = grad;
-      p.drawingContext.fillRect(0, 0, p.width, p.height);
-      p.drawingContext.fillStyle = '#000'; // reset
+      const maxR = Math.max(p.width, p.height) * 0.7;
+      p.noStroke();
+      const steps = 6;
+      for (let i = steps; i >= 1; i--) {
+        const r = maxR * (i / steps);
+        const a = p.map(i, steps, 1, 4, 22);
+        p.fill(38, 50, 130, a);
+        p.ellipse(cx, cy, r * 2, r * 2);
+      }
     }
 
     // ── Draw ─────────────────────────────────────────────────────────────────
@@ -236,25 +237,21 @@ export function createSketch({ level, allLevels = [], completedIds = new Set(),
 
         p.noStroke();
 
-        // Outer diffuse corona — blue-tinted, matches reference orb atmosphere
+        // Layered corona — three concentric ellipses, p5 primitives only (iOS-safe)
         const coronaR = active ? 44 : 28;
-        const grad = p.drawingContext.createRadialGradient(x, y, 0, x, y, coronaR);
-        grad.addColorStop(0,   `rgba(${sr},${sg},${sb},${0.28 * pulse * la})`);
-        grad.addColorStop(0.5, `rgba(${sr},${sg},${sb},${0.10 * pulse * la})`);
-        grad.addColorStop(1,   'rgba(0,0,0,0)');
-        p.drawingContext.fillStyle = grad;
-        p.drawingContext.beginPath();
-        p.drawingContext.arc(x, y, coronaR, 0, Math.PI * 2);
-        p.drawingContext.fill();
+        p.fill(sr, sg, sb, (active ? 55 : 30) * pulse * la);
+        p.ellipse(x, y, coronaR * 2);
+        p.fill(sr, sg, sb, (active ? 90 : 55) * pulse * la);
+        p.ellipse(x, y, coronaR * 2 * 0.55);
 
-        // Inner glow ring
+        // Star body
         const dotR = active ? STAR_R * 1.6 : STAR_R;
-        p.fill(sr, sg, sb, (active ? 230 : 180) * pulse * la);
+        p.fill(sr, sg, sb, (active ? 230 : 190) * pulse * la);
         p.ellipse(x, y, dotR * 2);
 
-        // Bright white core — the "orb" centre
-        p.fill(255, 255, 255, 240 * la);
-        p.ellipse(x, y, dotR * 0.5 * 2);
+        // Bright white core
+        p.fill(255, 255, 255, 245 * la);
+        p.ellipse(x, y, dotR * 0.48 * 2);
       }
     }
 
