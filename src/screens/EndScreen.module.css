@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Cormorant+Garamond:ital,wght@0,300;1,300;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=Cormorant+Garamond:ital,wght@0,300;1,300;1,400&display=swap');
 
 .root {
   position: fixed;
@@ -6,9 +6,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 20;
-  background: rgba(4, 4, 15, 0.6);
-  backdrop-filter: blur(6px);
+  background: #03030A;
+  background-image: radial-gradient(ellipse 65% 50% at 50% 45%, rgba(60,40,160,0.2) 0%, transparent 70%);
 }
 
 .content {
@@ -16,59 +15,62 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  animation: riseIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 0 32px;
+  animation: riseIn 0.9s cubic-bezier(0.16, 1, 0.3, 1);
 }
-
 @keyframes riseIn {
-  from { opacity: 0; transform: translateY(20px); }
+  from { opacity: 0; transform: translateY(22px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
 .eyebrow {
   font-family: 'Cinzel', serif;
-  font-size: 9px;
+  font-size: 8px;
   letter-spacing: 5px;
-  color: rgba(200, 220, 255, 0.45);
-  margin: 0 0 14px;
+  color: rgba(140, 160, 255, 0.38);
+  margin: 0 0 16px;
 }
 
 .title {
   font-family: 'Cormorant Garamond', serif;
   font-weight: 300;
-  font-size: clamp(52px, 10vw, 90px);
-  color: rgba(255, 255, 255, 0.92);
+  font-style: italic;
+  font-size: clamp(52px, 11vw, 90px);
+  color: rgba(255, 255, 255, 0.93);
   line-height: 1.05;
   margin: 0 0 18px;
+  letter-spacing: -0.5px;
 }
 
 .title em {
   font-style: italic;
-  color: rgba(200, 164, 255, 0.85);
+  color: rgba(150, 130, 255, 0.88);
 }
 
 .sub {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 15px;
-  letter-spacing: 2px;
-  color: rgba(255, 255, 255, 0.25);
-  margin: 0 0 44px;
+  font-family: 'Cinzel', serif;
+  font-size: 8px;
+  letter-spacing: 3px;
+  color: rgba(180, 195, 255, 0.25);
+  margin: 0 0 48px;
 }
 
 .btn {
   font-family: 'Cinzel', serif;
   font-size: 10px;
   letter-spacing: 4px;
-  color: rgba(200, 164, 255, 0.7);
-  background: transparent;
-  border: 1px solid rgba(200, 164, 255, 0.25);
-  padding: 13px 36px;
-  border-radius: 2px;
+  color: rgba(160, 180, 255, 0.7);
+  background: rgba(40, 50, 140, 0.18);
+  border: 1px solid rgba(100, 130, 255, 0.25);
+  padding: 14px 40px;
+  border-radius: 100px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
+  backdrop-filter: blur(8px);
 }
-
 .btn:hover {
-  color: rgba(220, 190, 255, 1);
-  border-color: rgba(200, 164, 255, 0.55);
-  background: rgba(200, 164, 255, 0.06);
+  color: rgba(200, 215, 255, 1);
+  border-color: rgba(100, 130, 255, 0.55);
+  background: rgba(60, 80, 200, 0.22);
+  box-shadow: 0 0 28px rgba(80, 110, 255, 0.2);
 }

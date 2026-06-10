@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Cormorant+Garamond:ital,wght@0,300;1,300;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=Cormorant+Garamond:ital,wght@0,300;1,300;1,400&display=swap');
 
 .root {
   position: fixed;
@@ -6,65 +6,71 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 20;
-  pointer-events: none;
+  background: #03030A;
+  /* Central atmospheric glow — matches reference orb feel */
+  background-image: radial-gradient(ellipse 70% 55% at 50% 42%, rgba(40,55,180,0.18) 0%, transparent 70%);
 }
 
 .content {
   text-align: center;
-  pointer-events: all;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0;
+  padding: 0 32px;
 }
 
 .eyebrow {
   font-family: 'Cinzel', serif;
-  font-size: 10px;
+  font-size: 9px;
   letter-spacing: 6px;
-  color: rgba(180, 200, 255, 0.5);
-  margin: 0 0 12px;
+  color: rgba(140, 160, 255, 0.4);
+  margin: 0 0 16px;
 }
 
 .title {
   font-family: 'Cormorant Garamond', serif;
   font-weight: 300;
-  font-size: clamp(52px, 10vw, 88px);
-  color: rgba(255, 255, 255, 0.92);
+  font-style: italic;
+  font-size: clamp(50px, 11vw, 88px);
+  color: rgba(255, 255, 255, 0.93);
   line-height: 1.05;
   margin: 0 0 20px;
+  letter-spacing: -0.5px;
 }
 
 .title em {
   font-style: italic;
-  color: rgba(160, 190, 255, 0.85);
+  color: rgba(130, 155, 255, 0.85);
 }
 
 .sub {
   font-family: 'Cormorant Garamond', serif;
   font-style: italic;
-  font-size: 18px;
-  color: rgba(255, 255, 255, 0.38);
-  line-height: 1.6;
-  margin: 0 0 44px;
+  font-size: 17px;
+  color: rgba(180, 195, 255, 0.32);
+  line-height: 1.7;
+  margin: 0 0 48px;
 }
 
+/* Pill button — matches reference chip style */
 .btn {
   font-family: 'Cinzel', serif;
-  font-size: 11px;
+  font-size: 10px;
   letter-spacing: 4px;
-  color: rgba(160, 190, 255, 0.7);
-  background: transparent;
-  border: 1px solid rgba(160, 190, 255, 0.25);
-  padding: 13px 40px;
-  border-radius: 2px;
+  color: rgba(160, 180, 255, 0.75);
+  background: rgba(40, 55, 140, 0.18);
+  border: 1px solid rgba(100, 130, 255, 0.25);
+  padding: 14px 40px;
+  border-radius: 100px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
+  backdrop-filter: blur(8px);
 }
 
 .btnHover {
-  color: rgba(180, 210, 255, 1);
-  border-color: rgba(160, 190, 255, 0.6);
-  background: rgba(160, 190, 255, 0.06);
+  color: rgba(200, 215, 255, 1);
+  border-color: rgba(100, 130, 255, 0.55);
+  background: rgba(60, 80, 200, 0.22);
+  box-shadow: 0 0 28px rgba(80, 110, 255, 0.2);
 }

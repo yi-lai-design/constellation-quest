@@ -81,10 +81,29 @@ export function createSketch({ level, allLevels = [], completedIds = new Set(),
 
     p.windowResized = function () { p.resizeCanvas(p.windowWidth, p.windowHeight); };
 
+    // ── Draw helpers (atmosphere, stars) ─────────────────────────────────────
+    function drawAtmosphere() {
+      // Very faint radial gradient — lighter in centre, tracks constellation region
+      const { x: cx, y: cy } = worldToScreen(
+        level.region.x + level.region.w / 2,
+        level.region.y + level.region.h / 2
+      );
+      const radius = Math.max(p.width, p.height) * 0.65;
+      const grad = p.drawingContext.createRadialGradient(cx, cy, 0, cx, cy, radius);
+      grad.addColorStop(0,   'rgba(40,50,120,0.18)');
+      grad.addColorStop(0.4, 'rgba(20,25,70,0.08)');
+      grad.addColorStop(1,   'rgba(0,0,0,0)');
+      p.drawingContext.fillStyle = grad;
+      p.drawingContext.fillRect(0, 0, p.width, p.height);
+      p.drawingContext.fillStyle = '#000'; // reset
+    }
+
     // ── Draw ─────────────────────────────────────────────────────────────────
     p.draw = function () {
       lerpVp();
-      p.background(4, 4, 15);
+      p.background(3, 3, 10);
+      // Subtle radial centre-glow — matches reference app atmospheric orb feel
+      drawAtmosphere();
       drawBgStars();
       drawGhostConstellations();
       drawDecoys();
@@ -130,14 +149,15 @@ export function createSketch({ level, allLevels = [], completedIds = new Set(),
           }
         }
 
-        // Stars
+        // Stars — white core + colour corona, matching interactive star style
         p.noStroke();
-        const starAlpha = isDone ? 220 : 100;
-        const starSize  = isDone ? 3.5 : 2;
         for (const s of lvl.stars) {
           const { x, y } = worldToScreen(s.x, s.y);
-          p.fill(r, g, b, starAlpha * ga);
-          p.ellipse(x, y, starSize * 2);
+          const sr2 = isDone ? 4 : 2.5;
+          p.fill(r, g, b, (isDone ? 160 : 80) * ga);
+          p.ellipse(x, y, sr2 * 2);
+          p.fill(255, 255, 255, (isDone ? 220 : 130) * ga);
+          p.ellipse(x, y, sr2 * 0.55 * 2);
         }
 
         // Constellation name label
@@ -205,25 +225,36 @@ export function createSketch({ level, allLevels = [], completedIds = new Set(),
       const la = levelA();
       if (la < 0.02) return;
       const col = p.color(level.starColor);
-      const r = p.red(col), g = p.green(col), b = p.blue(col);
+      const sr = p.red(col), sg = p.green(col), sb = p.blue(col);
 
       for (const s of level.stars) {
         const { x, y } = worldToScreen(s.x, s.y);
         const hovered  = mouseOnStar === s.id;
         const dragging = dragStart   === s.id;
-        const pulse    = p.map(p.sin(p.frameCount * 0.05 + s.id * 1.3), -1, 1, 0.65, 1.0);
+        const pulse    = p.map(p.sin(p.frameCount * 0.05 + s.id * 1.3), -1, 1, 0.7, 1.0);
+        const active   = hovered || dragging;
 
         p.noStroke();
-        const haloR = hovered || dragging ? 34 : 20;
-        p.fill(r, g, b, (hovered ? 110 : 50) * pulse * la);
-        p.ellipse(x, y, haloR * 2);
 
-        const dotR = hovered || dragging ? STAR_R * 1.55 : STAR_R;
-        p.fill(r, g, b, 245 * la);
+        // Outer diffuse corona — blue-tinted, matches reference orb atmosphere
+        const coronaR = active ? 44 : 28;
+        const grad = p.drawingContext.createRadialGradient(x, y, 0, x, y, coronaR);
+        grad.addColorStop(0,   `rgba(${sr},${sg},${sb},${0.28 * pulse * la})`);
+        grad.addColorStop(0.5, `rgba(${sr},${sg},${sb},${0.10 * pulse * la})`);
+        grad.addColorStop(1,   'rgba(0,0,0,0)');
+        p.drawingContext.fillStyle = grad;
+        p.drawingContext.beginPath();
+        p.drawingContext.arc(x, y, coronaR, 0, Math.PI * 2);
+        p.drawingContext.fill();
+
+        // Inner glow ring
+        const dotR = active ? STAR_R * 1.6 : STAR_R;
+        p.fill(sr, sg, sb, (active ? 230 : 180) * pulse * la);
         p.ellipse(x, y, dotR * 2);
 
-        p.fill(255, 255, 255, 210 * la);
-        p.ellipse(x, y, dotR * 0.45 * 2);
+        // Bright white core — the "orb" centre
+        p.fill(255, 255, 255, 240 * la);
+        p.ellipse(x, y, dotR * 0.5 * 2);
       }
     }
 
