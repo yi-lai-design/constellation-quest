@@ -78,14 +78,14 @@ export default function GameScreen({ onComplete }) {
               }}
             />
           ))}
-          <button className={styles.resetBtn} onClick={restart} title="Restart level">↺</button>
         </div>
       </div>
 
-      {/* Hint */}
-      {showHint && !won && (
-        <div className={styles.hint}>
-          <p>{level.hint}</p>
+      {/* Bottom controls */}
+      {!won && (
+        <div className={styles.bottomBar}>
+          {showHint && <p className={styles.hint}>{level.hint}</p>}
+          <button className={styles.resetBtn} onClick={restart}>↺ RESTART</button>
         </div>
       )}
 
