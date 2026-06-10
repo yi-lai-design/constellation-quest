@@ -1,35 +1,28 @@
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Cormorant+Garamond:ital,wght@0,300;1,300;1,400&display=swap');
 
-.root {
-  position: fixed;
-  inset: 0;
-}
+.root { position: fixed; inset: 0; }
 
 /* ── HUD ── */
 .hud {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+  top: 0; left: 0; right: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 20px 28px;
   z-index: 30;
   pointer-events: none;
+  transition: opacity 0.5s ease;
 }
+.hudFading { opacity: 0.4; }
 
-.levelTag {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
+.levelTag { display: flex; flex-direction: column; gap: 2px; }
 
 .levelLabel {
   font-family: 'Cinzel', serif;
   font-size: 9px;
   letter-spacing: 4px;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255,255,255,0.3);
 }
 
 .levelName {
@@ -39,43 +32,18 @@
   font-style: italic;
 }
 
-.progress {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-}
+.progress { display: flex; gap: 6px; align-items: center; }
 
 .pip {
-  width: 7px;
-  height: 7px;
+  width: 7px; height: 7px;
   border-radius: 50%;
   transition: background 0.3s ease, box-shadow 0.3s ease;
-}
-
-.resetBtn {
-  font-family: 'Cinzel', serif;
-  font-size: 10px;
-  letter-spacing: 3px;
-  color: rgba(255, 255, 255, 0.35);
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 2px;
-  padding: 10px 24px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.resetBtn:hover, .resetBtn:active {
-  color: rgba(255, 255, 255, 0.7);
-  border-color: rgba(255, 255, 255, 0.3);
 }
 
 /* ── Bottom bar ── */
 .bottomBar {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  bottom: 0; left: 0; right: 0;
   padding: 16px 24px 36px;
   display: flex;
   flex-direction: column;
@@ -88,80 +56,127 @@
   font-family: 'Cormorant Garamond', serif;
   font-style: italic;
   font-size: 15px;
-  color: rgba(255, 255, 255, 0.28);
+  color: rgba(255,255,255,0.28);
   margin: 0;
   letter-spacing: 0.5px;
   pointer-events: none;
 }
 
-/* ── Win overlay ── */
-.winOverlay {
+.resetBtn {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: rgba(255,255,255,0.35);
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 2px;
+  padding: 10px 24px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.resetBtn:hover, .resetBtn:active {
+  color: rgba(255,255,255,0.7);
+  border-color: rgba(255,255,255,0.3);
+}
+
+/* ── Zoom-in label ── */
+.zoomInLabel {
   position: fixed;
   inset: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: rgba(4, 4, 15, 0.75);
-  backdrop-filter: blur(12px);
+  z-index: 30;
+  pointer-events: none;
+  animation: fadeInOut 1.6s ease forwards;
+}
+@keyframes fadeInOut {
+  0%   { opacity: 0; }
+  20%  { opacity: 1; }
+  70%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+.zoomInName {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: clamp(40px, 8vw, 68px);
+  margin: 0;
+  line-height: 1;
+}
+.zoomInSub {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 4px;
+  color: rgba(255,255,255,0.3);
+  margin: 10px 0 0;
+}
+
+/* ── Map-view overlay ── */
+.mapOverlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 52px;
   z-index: 40;
-  animation: fadeIn 0.6s ease;
+  animation: slideUp 0.6s cubic-bezier(0.16,1,0.3,1);
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-.winCard {
+.mapCard {
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0;
-  animation: riseIn 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  background: rgba(4,4,15,0.82);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 4px;
+  padding: 28px 36px 24px;
+  backdrop-filter: blur(16px);
+  max-width: 340px;
+  width: 90%;
 }
 
-@keyframes riseIn {
-  from { opacity: 0; transform: translateY(24px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-.winEyebrow {
+.mapEyebrow {
   font-family: 'Cinzel', serif;
   font-size: 9px;
   letter-spacing: 5px;
-  color: rgba(255, 255, 255, 0.35);
-  margin: 0 0 12px;
+  color: rgba(255,255,255,0.3);
+  margin: 0 0 10px;
 }
 
-.winTitle {
+.mapTitle {
   font-family: 'Cormorant Garamond', serif;
   font-weight: 300;
   font-style: italic;
-  font-size: clamp(48px, 9vw, 80px);
-  margin: 0 0 8px;
+  font-size: clamp(38px, 8vw, 58px);
+  margin: 0 0 6px;
   line-height: 1;
 }
 
-.winSub {
+.mapSub {
   font-family: 'Cormorant Garamond', serif;
-  font-size: 15px;
-  color: rgba(255, 255, 255, 0.3);
-  margin: 0 0 36px;
+  font-size: 14px;
+  color: rgba(255,255,255,0.28);
+  margin: 0 0 24px;
+  letter-spacing: 0.5px;
 }
 
-.winBtn {
+.nextBtn {
   font-family: 'Cinzel', serif;
   font-size: 10px;
   letter-spacing: 3px;
   background: transparent;
   border: 1px solid;
-  padding: 13px 32px;
+  padding: 12px 28px;
   border-radius: 2px;
   cursor: pointer;
   transition: opacity 0.2s ease;
+  white-space: nowrap;
 }
-
-.winBtn:hover {
-  opacity: 0.7;
-}
+.nextBtn:hover, .nextBtn:active { opacity: 0.65; }

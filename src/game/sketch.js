@@ -1,30 +1,26 @@
 import p5 from 'p5';
 import { regionViewport } from './levels';
 
-// createSketch — p5 instance-mode sketch with a world-space camera.
+// createSketch — world-space camera + ghost constellation overlay.
 //
-// All star coordinates are in world space (0–1 across the full sky).
-// The viewport (cx, cy, zoom) controls which part of the sky is visible.
-// At zoom=1 the full sky fills the screen; higher zoom values zoom in.
-//
-// Exposed via callbacks:
-//   onConnect(a, b) — user drew a correct connection
-//   onWin()         — all connections complete
-//   getViewport()   — returns current { cx, cy, zoom }
-//   setTarget(vp)   — animate camera to a new viewport
+// initialVp  — starting viewport (default: zoomed into level region).
+//              Pass SKY_VIEWPORT to start zoomed out and animate in.
+// allLevels  — all level data, used to draw ghost constellations.
+// completedIds — Set of completed level IDs (draw full lines for these).
+// onViewportRef({ setTarget, getViewport }) — camera control API for React.
 
-export function createSketch({ level, onConnect, onWin, onViewportRef }) {
+export function createSketch({ level, allLevels = [], completedIds = new Set(),
+                               initialVp, onConnect, onWin, onViewportRef }) {
   return function sketch(p) {
-    const HIT_RADIUS   = 30;   // screen-space px
-    const STAR_R       = 5.5;  // screen-space px
-    const DECOY_R      = 2.2;
+    const HIT_RADIUS = 30;
+    const STAR_R     = 5.5;
+    const DECOY_R    = 2.2;
+    const LEVEL_ZOOM = regionViewport(level.region).zoom; // ~2.2
 
     // ── Camera ──────────────────────────────────────────────────────────────
-    // worldToScreen: converts a world coord (0–1) to canvas pixels.
-    // sx = (wx - cx) * W * zoom + W/2  (same formula for y)
-    let vp     = { ...regionViewport(level.region) };
-    let target = { ...vp };
-    let vpSettled = true; // true once lerp has converged
+    const defaultVp = regionViewport(level.region);
+    let vp     = { ...(initialVp || defaultVp) };
+    let target = { ...defaultVp }; // always animate toward level region on mount
 
     function worldToScreen(wx, wy) {
       return {
@@ -34,24 +30,22 @@ export function createSketch({ level, onConnect, onWin, onViewportRef }) {
     }
 
     function lerpVp() {
-      const SPEED = 0.07;
-      const dx = Math.abs(vp.cx - target.cx);
-      const dy = Math.abs(vp.cy - target.cy);
-      const dz = Math.abs(vp.zoom - target.zoom);
-      if (dx + dy + dz < 0.0005) { vp = { ...target }; vpSettled = true; return; }
-      vpSettled = false;
+      const SPEED = 0.065;
+      const delta = Math.abs(vp.cx - target.cx) + Math.abs(vp.cy - target.cy) + Math.abs(vp.zoom - target.zoom);
+      if (delta < 0.0004) { vp = { ...target }; return; }
       vp.cx   = p.lerp(vp.cx,   target.cx,   SPEED);
       vp.cy   = p.lerp(vp.cy,   target.cy,   SPEED);
       vp.zoom = p.lerp(vp.zoom, target.zoom, SPEED);
     }
 
+    // Ghost alpha: 0 when zoomed into level, 1 when at full sky
+    function ghostA() { return p.constrain(p.map(vp.zoom, LEVEL_ZOOM * 0.8, 1.4, 0, 1), 0, 1); }
+    // Level alpha: reverse — fade out interactive layer when zoomed out
+    function levelA() { return p.constrain(p.map(vp.zoom, LEVEL_ZOOM * 0.75, LEVEL_ZOOM * 0.5, 1, 0), 0, 1); }
+
     // ── State ────────────────────────────────────────────────────────────────
-    let bgStars    = [];
-    let decoyStars = []; // world coords
-    let drawnEdges = new Set();
-    let wrongFlashes = [];
-    let dragStart  = null;
-    let mouseOnStar = null;
+    let bgStars = [], decoyStars = [], drawnEdges = new Set(), wrongFlashes = [];
+    let dragStart = null, mouseOnStar = null, inputEnabled = true;
 
     const correctEdgeSet = new Set(level.connections.map(([a, b]) => ekey(a, b)));
     function ekey(a, b) { return `${Math.min(a,b)}-${Math.max(a,b)}`; }
@@ -60,41 +54,39 @@ export function createSketch({ level, onConnect, onWin, onViewportRef }) {
     p.setup = function () {
       p.createCanvas(p.windowWidth, p.windowHeight).style('display', 'block');
 
-      // Background stars spread across the full sky
-      bgStars = Array.from({ length: 220 }, () => ({
+      bgStars = Array.from({ length: 240 }, () => ({
         wx: p.random(1), wy: p.random(1),
-        r:  p.random(0.3, 1.3),
-        brightness: p.random(55, 160),
-        phase: p.random(p.TWO_PI),
+        r: p.random(0.3, 1.4), brightness: p.random(50, 165), phase: p.random(p.TWO_PI),
       }));
 
-      // Decoy stars scattered within the level's region
       const { region } = level;
       let tries = 0;
       while (decoyStars.length < level.decoyCount && tries++ < 600) {
         const wx = p.random(region.x + 0.01, region.x + region.w - 0.01);
         const wy = p.random(region.y + 0.01, region.y + region.h - 0.01);
-        const tooClose = level.stars.some(s => p.dist(wx, wy, s.x, s.y) < 0.035);
-        if (!tooClose) decoyStars.push({ wx, wy });
+        if (!level.stars.some(s => p.dist(wx, wy, s.x, s.y) < 0.035))
+          decoyStars.push({ wx, wy });
       }
 
-      // Expose camera controls to parent
       if (onViewportRef) {
         onViewportRef({
-          getViewport: () => ({ ...vp }),
-          setTarget:   (newVp) => { target = { ...newVp }; p.loop(); },
-          resume:      () => p.loop(),
+          getViewport:    () => ({ ...vp }),
+          setTarget:      (newVp) => { target = { ...newVp }; p.loop(); },
+          disableInput:   () => { inputEnabled = false; },
+          enableInput:    () => { inputEnabled = true; },
+          resume:         () => p.loop(),
         });
       }
     };
 
     p.windowResized = function () { p.resizeCanvas(p.windowWidth, p.windowHeight); };
 
-    // ── Draw loop ────────────────────────────────────────────────────────────
+    // ── Draw ─────────────────────────────────────────────────────────────────
     p.draw = function () {
       lerpVp();
       p.background(4, 4, 15);
       drawBgStars();
+      drawGhostConstellations();
       drawDecoys();
       drawCompletedLines();
       drawWrongFlashes();
@@ -102,7 +94,6 @@ export function createSketch({ level, onConnect, onWin, onViewportRef }) {
       drawConstellationStars();
     };
 
-    // ── Drawing ──────────────────────────────────────────────────────────────
     function drawBgStars() {
       p.noStroke();
       for (const s of bgStars) {
@@ -114,25 +105,80 @@ export function createSketch({ level, onConnect, onWin, onViewportRef }) {
       }
     }
 
+    // Ghost constellations — appear as the camera zooms out to full sky
+    function drawGhostConstellations() {
+      const ga = ghostA();
+      if (ga < 0.02) return;
+
+      for (const lvl of allLevels) {
+        const isCurrent  = lvl.id === level.id;
+        const isDone     = completedIds.has(lvl.id) || (isCurrent && drawnEdges.size === correctEdgeSet.size);
+        const col        = p.color(lvl.starColor);
+        const r = p.red(col), g = p.green(col), b = p.blue(col);
+
+        // Lines — completed constellations show full connections
+        if (isDone) {
+          const edges = isCurrent
+            ? [...drawnEdges].map(k => k.split('-').map(Number))
+            : lvl.connections;
+          p.strokeWeight(1.2);
+          p.stroke(r, g, b, 160 * ga);
+          for (const [a2, b2] of edges) {
+            const sa = worldToScreen(lvl.stars[a2].x, lvl.stars[a2].y);
+            const sb = worldToScreen(lvl.stars[b2].x, lvl.stars[b2].y);
+            p.line(sa.x, sa.y, sb.x, sb.y);
+          }
+        }
+
+        // Stars
+        p.noStroke();
+        const starAlpha = isDone ? 220 : 100;
+        const starSize  = isDone ? 3.5 : 2;
+        for (const s of lvl.stars) {
+          const { x, y } = worldToScreen(s.x, s.y);
+          p.fill(r, g, b, starAlpha * ga);
+          p.ellipse(x, y, starSize * 2);
+        }
+
+        // Constellation name label
+        if (ga > 0.3) {
+          const { x, y } = worldToScreen(
+            lvl.region.x + lvl.region.w / 2,
+            lvl.region.y + lvl.region.h + 0.025
+          );
+          p.noStroke();
+          p.fill(r, g, b, 180 * ga);
+          p.textSize(9);
+          p.textStyle(p.NORMAL);
+          p.textAlign(p.CENTER, p.TOP);
+          p.text(lvl.name.toUpperCase(), x, y);
+        }
+      }
+    }
+
     function drawDecoys() {
+      const la = levelA();
+      if (la < 0.02) return;
       p.noStroke();
       for (const s of decoyStars) {
         const { x, y } = worldToScreen(s.wx, s.wy);
-        p.fill(170, 185, 220, 85);
+        p.fill(170, 185, 220, 85 * la);
         p.ellipse(x, y, DECOY_R * 2);
       }
     }
 
     function drawCompletedLines() {
+      const la = levelA();
+      if (la < 0.02) return;
       const col = p.color(level.lineColor);
       const r = p.red(col), g = p.green(col), b = p.blue(col);
       for (const key of drawnEdges) {
         const [a, b2] = key.split('-').map(Number);
         const sa = worldToScreen(level.stars[a].x, level.stars[a].y);
         const sb = worldToScreen(level.stars[b2].x, level.stars[b2].y);
-        p.stroke(r, g, b, 38); p.strokeWeight(9);
+        p.stroke(r, g, b, 38 * la); p.strokeWeight(9);
         p.line(sa.x, sa.y, sb.x, sb.y);
-        p.stroke(r, g, b, 210); p.strokeWeight(1.5);
+        p.stroke(r, g, b, 210 * la); p.strokeWeight(1.5);
         p.line(sa.x, sa.y, sb.x, sb.y);
       }
     }
@@ -148,8 +194,7 @@ export function createSketch({ level, onConnect, onWin, onViewportRef }) {
 
     function drawDragLine() {
       if (dragStart === null) return;
-      const s = level.stars[dragStart];
-      const { x, y } = worldToScreen(s.x, s.y);
+      const { x, y } = worldToScreen(level.stars[dragStart].x, level.stars[dragStart].y);
       p.stroke(255, 255, 255, 70); p.strokeWeight(1.5);
       p.drawingContext.setLineDash([5, 7]);
       p.line(x, y, p.mouseX, p.mouseY);
@@ -157,28 +202,27 @@ export function createSketch({ level, onConnect, onWin, onViewportRef }) {
     }
 
     function drawConstellationStars() {
+      const la = levelA();
+      if (la < 0.02) return;
       const col = p.color(level.starColor);
       const r = p.red(col), g = p.green(col), b = p.blue(col);
 
       for (const s of level.stars) {
         const { x, y } = worldToScreen(s.x, s.y);
-        const hovered = mouseOnStar === s.id;
-        const dragging = dragStart  === s.id;
-        const pulse = p.map(p.sin(p.frameCount * 0.05 + s.id * 1.3), -1, 1, 0.65, 1.0);
+        const hovered  = mouseOnStar === s.id;
+        const dragging = dragStart   === s.id;
+        const pulse    = p.map(p.sin(p.frameCount * 0.05 + s.id * 1.3), -1, 1, 0.65, 1.0);
 
-        // Glow halo
         p.noStroke();
         const haloR = hovered || dragging ? 34 : 20;
-        p.fill(r, g, b, (hovered ? 110 : 50) * pulse);
+        p.fill(r, g, b, (hovered ? 110 : 50) * pulse * la);
         p.ellipse(x, y, haloR * 2);
 
-        // Star body
         const dotR = hovered || dragging ? STAR_R * 1.55 : STAR_R;
-        p.fill(r, g, b, 245);
+        p.fill(r, g, b, 245 * la);
         p.ellipse(x, y, dotR * 2);
 
-        // Bright core
-        p.fill(255, 255, 255, 210);
+        p.fill(255, 255, 255, 210 * la);
         p.ellipse(x, y, dotR * 0.45 * 2);
       }
     }
@@ -194,11 +238,16 @@ export function createSketch({ level, onConnect, onWin, onViewportRef }) {
       return best;
     }
 
-    p.mouseMoved   = () => { mouseOnStar = nearestStar(p.mouseX, p.mouseY); };
-    p.mousePressed = () => { const h = nearestStar(p.mouseX, p.mouseY); if (h !== null) dragStart = h; };
+    p.mouseMoved = () => { mouseOnStar = nearestStar(p.mouseX, p.mouseY); };
+
+    p.mousePressed = () => {
+      if (!inputEnabled) return;
+      const h = nearestStar(p.mouseX, p.mouseY);
+      if (h !== null) dragStart = h;
+    };
 
     p.mouseReleased = function () {
-      if (dragStart === null) return;
+      if (!inputEnabled || dragStart === null) return;
       const hit = nearestStar(p.mouseX, p.mouseY);
       if (hit !== null && hit !== dragStart) {
         const key = ekey(dragStart, hit);
@@ -209,7 +258,7 @@ export function createSketch({ level, onConnect, onWin, onViewportRef }) {
             if (drawnEdges.size === correctEdgeSet.size) { p.noLoop(); onWin(); }
           } else {
             const sa = worldToScreen(level.stars[dragStart].x, level.stars[dragStart].y);
-            const sb = worldToScreen(level.stars[hit].x, level.stars[hit].y);
+            const sb = worldToScreen(level.stars[hit].x,       level.stars[hit].y);
             wrongFlashes.push({ x1: sa.x, y1: sa.y, x2: sb.x, y2: sb.y, born: p.frameCount });
           }
         }

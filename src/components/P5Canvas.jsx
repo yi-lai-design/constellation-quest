@@ -2,14 +2,17 @@ import { useEffect, useRef } from 'react';
 import p5 from 'p5';
 import { createSketch } from '../game/sketch';
 
-// cameraRef — optional ref that will be populated with { getViewport, setTarget, resume }
-export default function P5Canvas({ level, onConnect, onWin, cameraRef }) {
+export default function P5Canvas({ level, allLevels, completedIds, initialVp,
+                                    onConnect, onWin, cameraRef }) {
   const containerRef = useRef(null);
   const p5Ref = useRef(null);
 
   useEffect(() => {
     const sketchFn = createSketch({
       level,
+      allLevels,
+      completedIds,
+      initialVp,
       onConnect,
       onWin,
       onViewportRef: (api) => { if (cameraRef) cameraRef.current = api; },
@@ -22,7 +25,5 @@ export default function P5Canvas({ level, onConnect, onWin, cameraRef }) {
     };
   }, [level]);
 
-  return (
-    <div ref={containerRef} style={{ position: 'fixed', inset: 0, zIndex: 0 }} />
-  );
+  return <div ref={containerRef} style={{ position: 'fixed', inset: 0, zIndex: 0 }} />;
 }
