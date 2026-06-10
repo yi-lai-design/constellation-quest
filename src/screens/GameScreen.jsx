@@ -6,6 +6,7 @@ import styles from './GameScreen.module.css';
 
 export default function GameScreen({ onComplete }) {
   const [levelIndex, setLevelIndex] = useState(0);
+  const [resetCount, setResetCount] = useState(0);
   const [connections, setConnections] = useState(0);
   const [won, setWon] = useState(false);
   const [showHint, setShowHint] = useState(true);
@@ -23,6 +24,13 @@ export default function GameScreen({ onComplete }) {
     setWon(true);
   }, []);
 
+  function restart() {
+    setResetCount(c => c + 1);
+    setConnections(0);
+    setWon(false);
+    setShowHint(true);
+  }
+
   function nextLevel() {
     if (isLastLevel) {
       onComplete();
@@ -38,7 +46,7 @@ export default function GameScreen({ onComplete }) {
     <div className={styles.root}>
       {/* p5 canvas — full screen game layer */}
       <P5Canvas
-        key={levelIndex}
+        key={`${levelIndex}-${resetCount}`}
         level={level}
         onConnect={handleConnect}
         onWin={handleWin}
@@ -70,6 +78,7 @@ export default function GameScreen({ onComplete }) {
               }}
             />
           ))}
+          <button className={styles.resetBtn} onClick={restart} title="Restart level">↺</button>
         </div>
       </div>
 
